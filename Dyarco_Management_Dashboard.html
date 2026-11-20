@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dyarco Technology (WLL) - Finance & KPI Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+<style>
+:root{--taupe:#A8A495;--ink:#2b2b2b;--orange:#F07818;--navy:#1B2A41;--teal:#2A9D8F;--gold:#E9B44C;--slate:#9AA5B1;--brick:#C8553D;--sky:#7FB7BE;--mute:#6b6b6b;--line:#e6e4dc;--card:#f7f6f2}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,"Segoe UI",Tahoma,sans-serif;color:var(--ink);background:#fff}
+html[dir=rtl] body{font-family:"Segoe UI",Tahoma,Arial,sans-serif}
+header{display:flex;align-items:stretch}
+header .logo{background:#fff;padding:10px 18px;display:flex;align-items:center}
+header .logo img{height:96px}
+header .title{flex:1;background:var(--taupe);color:var(--ink);padding:22px 28px}
+header .title h1{margin:0;font-size:28px;letter-spacing:.4px}
+header .title p{margin:6px 0 0;font-size:14px}
+.subbar{background:var(--orange);color:#fff;padding:8px 28px;font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.controls{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding:10px 28px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.controls label{font-size:13px;color:var(--mute);margin-inline-end:4px}
+.controls select,.controls button{font-size:14px;padding:7px 10px;border:1px solid #cfccbf;border-radius:6px;background:var(--card);color:var(--ink)}
+.controls button{border-color:var(--orange);background:#fff;color:var(--orange);cursor:pointer}
+.controls button:hover{background:var(--orange);color:#fff}
+.controls nav{display:flex;gap:12px;flex-wrap:wrap;margin-inline-start:auto}
+.controls nav a{font-size:13px;color:var(--navy);text-decoration:none;border-bottom:2px solid transparent}
+.controls nav a:hover{border-bottom-color:var(--orange)}
+main{padding:20px 28px 40px;max-width:1500px;margin:0 auto}
+h2{font-size:17px;color:var(--orange);border-bottom:2px solid var(--orange);padding-bottom:6px;margin:34px 0 14px;scroll-margin-top:70px}
+.hint{font-size:13px;color:var(--mute);margin:-6px 0 12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.card{background:var(--card);border-top:4px solid var(--orange);border-radius:8px;padding:14px 16px}
+.card .lbl{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.4px;font-weight:bold}
+.card .val{font-size:30px;font-weight:bold;color:var(--ink);margin:6px 0 8px}
+.card .s{font-size:12px;color:#444;line-height:1.55}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.panel h3{margin:2px 0 8px;font-size:14px;color:var(--ink)}
+.gauge{text-align:center}
+.gauge .g{height:150px;position:relative}
+.gauge .t{font-size:13px;font-weight:bold;margin-top:4px}
+.gauge .v{font-size:12px;color:#333;margin-top:6px;background:var(--card);border-radius:6px;padding:7px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{background:var(--taupe);color:var(--ink);padding:8px;text-align:end;font-weight:bold}
+th:first-child,td:first-child{text-align:start}
+td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:end}
+tr.sel td{background:#fff4ea;font-weight:bold}
+.st{font-weight:bold;text-align:center;border-radius:5px;padding:3px 8px;display:inline-block;min-width:82px}
+.on{background:#d7f0dc;color:#0b6b2a}.ar{background:#fff1c2;color:#8a5a00}.off{background:#ffd9dc;color:#9c0006}.nd{background:#ececec;color:#555}
+.note{font-size:12px;color:var(--mute);line-height:1.6;margin:8px 2px 0}
+.chart{height:330px;position:relative}
+.tall{height:370px}
+.pill{display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:3px 10px;font-size:12px;color:#444;margin-inline-start:6px;font-weight:normal}
+footer{margin-top:30px;font-size:12px;color:var(--mute);border-top:1px solid var(--line);padding-top:10px;line-height:1.6}
+html[dir=rtl] .card{border-top:none;border-inline-start:4px solid var(--orange)}
+@media (max-width:1000px){.cards,.grid4{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}header{flex-direction:column}.controls nav{margin-inline-start:0}}
+@media print{.controls{display:none}header .title{-webkit-print-color-adjust:exact;print-color-adjust:exact}.subbar,.card,th{-webkit-print-color-adjust:exact;print-color-adjust:exact}h2{break-after:avoid}.panel,.card{break-inside:avoid}}
+</style></head>
+<body>
+<header>
+  <div class="logo"><img id="logo" alt="Dyarco Technology (WLL)"></div>
+  <div class="title"><h1>DYARCO TECHNOLOGY (WLL)</h1><p data-en="Finance &amp; KPI dashboard for management">Finance &amp; KPI dashboard for management</p></div>
+</header>
+<div class="subbar"><span id="subline"></span><span data-en="All money in QAR">All money in QAR</span></div>
+<div class="controls">
+  <div><label for="selLang">Language / اللغة</label><select id="selLang"><option value="en">English</option><option value="ar">العربية</option></select></div>
+  <div><label for="selCo" data-en="Company">Company</label><select id="selCo"></select></div>
+  <div><label for="selM" data-en="Up to month">Up to month</label><select id="selM"></select></div>
+  <button onclick="window.print()" data-en="Print or save as PDF">Print or save as PDF</button>
+  <nav>
+    <a href="#s-overview" data-en="Overview">Overview</a><a href="#s-targets" data-en="Targets">Targets</a><a href="#s-gauges" data-en="Gauges">Gauges</a><a href="#s-trends" data-en="Trends">Trends</a>
+    <a href="#s-pipeline" data-en="Pipeline">Pipeline</a><a href="#s-cash" data-en="Cash">Cash</a><a href="#s-mix" data-en="Business mix">Business mix</a><a href="#s-notes" data-en="Notes">Notes</a>
+  </nav>
+</div>
+
+<main>
+<h2 id="s-overview"><span data-en="How are we doing this year?">How are we doing this year?</span></h2>
+<p class="hint" id="scopeHint"></p>
+<div class="cards" id="cards"></div>
+<p class="note" id="prov"></p>
+
+<h2 id="s-targets"><span data-en="Are we on target?">Are we on target?</span> <span class="pill" data-en="whole group, as at October">whole group, as at October</span></h2>
+<div class="panel"><table id="score"></table>
+<p class="note" data-en="On track means the KPI meets its target. At risk means it is between target and the limit. Off track means it has reached the limit. &quot;No data&quot; means it has not been reported yet.">On track means the KPI meets its target. At risk means it is between target and the limit. Off track means it has reached the limit. "No data" means it has not been reported yet.</p></div>
+
+<h2 id="s-gauges"><span data-en="How close are we to target?">How close are we to target?</span></h2>
+<div class="grid4" id="gauges"></div>
+<p class="note" id="gaugeNote"></p>
+
+<h2><span data-en="How each company is doing">How each company is doing</span> <span class="pill" data-en="so far this year">so far this year</span></h2>
+<div class="panel"><table id="snap"></table>
+<p class="note" data-en="Consolidated comes from the Cons. sheet. DTC, AFQ, DSS and ITD come from their own sheets. Net profit is before provisions. Budget is set for the whole group only.">Consolidated comes from the Cons. sheet. DTC, AFQ, DSS and ITD come from their own sheets. Net profit is before provisions. Budget is set for the whole group only.</p></div>
+
+<h2 id="s-trends"><span data-en="Profit and revenue through the year">Profit and revenue through the year</span></h2>
+<div class="grid2">
+ <div class="panel"><h3 data-en="Net profit: 2025 vs 2026 vs budget (QAR M)">Net profit: 2025 vs 2026 vs budget (QAR M)</h3><div class="chart"><canvas id="cNP"></canvas></div></div>
+ <div class="panel"><h3 data-en="Revenue: 2025 vs 2026 vs budget (QAR M)">Revenue: 2025 vs 2026 vs budget (QAR M)</h3><div class="chart"><canvas id="cRev"></canvas></div></div>
+ <div class="panel"><h3 data-en="Gross profit and net profit, 2026 (QAR M)">Gross profit and net profit, 2026 (QAR M)</h3><div class="chart"><canvas id="cGPNP"></canvas></div></div>
+ <div class="panel"><h3 data-en="Gross profit: 2025 vs 2026 vs budget (QAR M)">Gross profit: 2025 vs 2026 vs budget (QAR M)</h3><div class="chart"><canvas id="cGP"></canvas></div></div>
+ <div class="panel"><h3 data-en="Monthly revenue by business line (QAR M)">Monthly revenue by business line (QAR M)</h3><div class="chart"><canvas id="cSeg"></canvas></div></div>
+ <div class="panel"><h3 data-en="What provisions do to net profit (QAR M)">What provisions do to net profit (QAR M)</h3><div class="chart"><canvas id="cWF"></canvas></div></div>
+</div>
+
+<h2 id="s-pipeline"><span data-en="Sales pipeline: quotes, orders and work in hand">Sales pipeline: quotes, orders and work in hand</span> <span class="pill" data-en="whole group">whole group</span></h2>
+<div class="grid2">
+ <div class="panel"><h3 data-en="Quotes vs orders, by month (QAR M)">Quotes vs orders, by month (QAR M)</h3><div class="chart tall"><canvas id="cQO"></canvas></div></div>
+ <div class="panel"><h3 data-en="Quotes: value and number, 2026">Quotes: value and number, 2026</h3><div class="chart tall"><canvas id="cQA"></canvas></div></div>
+ <div class="panel"><h3 data-en="Customer orders by type, 2026 (QAR M)">Customer orders by type, 2026 (QAR M)</h3><div class="chart"><canvas id="cCO"></canvas></div></div>
+ <div class="panel"><h3 data-en="Work in hand: orders not yet delivered (QAR M)">Work in hand: orders not yet delivered (QAR M)</h3><div class="chart"><canvas id="cOH"></canvas></div></div>
+ <div class="panel"><h3 data-en="Work in hand by age (QAR M)">Work in hand by age (QAR M)</h3><div class="chart"><canvas id="cAg"></canvas></div></div>
+</div>
+
+<h2 id="s-cash"><span data-en="Cash tied up: stock and what customers owe">Cash tied up: stock and what customers owe</span> <span class="pill" data-en="whole group">whole group</span></h2>
+<div class="grid2">
+ <div class="panel"><h3 data-en="Stock on hand by age (QAR M)">Stock on hand by age (QAR M)</h3><div class="chart"><canvas id="cInv"></canvas></div></div>
+ <div class="panel"><h3 data-en="Money owed by customers, by age (QAR M)">Money owed by customers, by age (QAR M)</h3><div class="chart"><canvas id="cDeb"></canvas></div></div>
+ <div class="panel"><h3 data-en="Stock value by brand (QAR M)">Stock value by brand (QAR M)</h3><div class="chart"><canvas id="cBrand"></canvas></div></div>
+ <div class="panel"><h3 data-en="Brand stock by age (QAR M)">Brand stock by age (QAR M)</h3><div class="chart"><canvas id="cBAg"></canvas></div></div>
+</div>
+
+<h2 id="s-mix"><span data-en="Where the business earns its money">Where the business earns its money</span></h2>
+<div class="grid2">
+ <div class="panel"><h3 data-en="Revenue, gross profit and net profit by company (QAR M)">Revenue, gross profit and net profit by company (QAR M)</h3><div class="chart tall"><canvas id="cCompany"></canvas></div></div>
+ <div class="panel"><h3 id="mixTitle"></h3><div class="chart tall"><canvas id="cMix"></canvas></div></div>
+</div>
+
+<footer id="s-notes">
+<span data-en="Source: Monthly_Report workbook (Cons., DTC, AFQ, DSS and ITD sheets, KPI, KPI Working, Adjustment Entries Impact). This page shows the October 2026 position. Pick a company and a month above to update the figures and trend charts.">Source: Monthly_Report workbook (Cons., DTC, AFQ, DSS and ITD sheets, KPI, KPI Working, Adjustment Entries Impact). This page shows the October 2026 position. Pick a company and a month above to update the figures and trend charts.</span><br>
+<span data-en="Nov and Dec are not yet reported. Provisions and the scorecard are as at October. Pipeline and cash figures are for the whole group.">Nov and Dec are not yet reported. Provisions and the scorecard are as at October. Pipeline and cash figures are for the whole group.</span>
+</footer>
+</main>
+
+<script>
+const W = {"companies": {"Consolidated": {"amc": [110660.16, 81141.58, 81209.12, 107560.5, 84216.71, 90512.63, 84049.82, 158339.12, 85923.34, 125260.31, 0.0, 0.0], "prj": [164152.34, 328877.06999999995, 210018.28, 1036485.73, 215736.94999999998, 555012.06, 311475.57, 1445869.65, 1691456.5, 1985133.74, 0.0, 0.0], "trd": [343235.57, 176593.03, 238717.01, 264674.29000000004, 180648.3, 212747.08000000002, 192258.74, 277140.91, 321295.26, 227700.53, 0.0, 0.0], "rev": [618048.0700000001, 586611.6799999999, 529944.41, 1408720.52, 480601.95999999996, 858271.77, 587784.13, 1881349.68, 2098675.1, 2338094.58, 0, 0], "gp": [208972.61960000003, 183913.4711999999, 187496.20830000006, 399770.83400000003, 152635.26919999992, 341874.94399999996, 177046.15360000008, 629335.4670999998, 438608.6379, 532105.0847000005, 0, 0], "np": [-106990.49729999999, -119293.79630000002, -134230.4103999999, 71492.81849999996, -126510.64630000011, 29407.877799999977, -124481.52619999992, 345305.1672999998, 132479.2242, 216286.30970000048, 0, 0]}, "DTC": {"amc": [110660.16, 81141.58, 81209.12, 107560.5, 84216.71, 90512.63, 84049.82, 158339.12, 85923.34, 125260.31, 0.0, 0.0], "prj": [164152.34, 328877.06999999995, 210018.28, 1036485.73, 215736.94999999998, 555012.06, 311475.57, 1445869.65, 136083.5, 1182872.74, 0.0, 0.0], "trd": [54571.0, 34562.45, 107609.75, 97287.29000000001, 90140.6, 55275.0, 21394.0, 107862.17, 186420.0, 43747.0, 0.0, 0.0], "rev": [329383.5, 444581.1, 398837.15, 1241333.52, 390094.26, 700799.6900000001, 416919.39, 1712070.94, 408426.83999999997, 1351880.05, 0, 0], "gp": [159060.0227, 143301.00539999997, 163118.81640000004, 370472.7764, 136442.8896, 303807.22729999997, 131371.32490000007, 575800.9521000001, 135958.29599999997, 354112.1647000001, 0, 0], "np": [-90122.69420000004, -102902.87210000002, -108490.94229999997, 94071.81089999997, -96417.33590000003, 41947.53109999999, -109034.37489999995, 351091.2123000001, -113987.60770000005, 98881.27970000007, 0, 0]}, "AFQ": {"amc": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "prj": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "trd": [288664.57, 142030.58, 131107.26, 167387.0, 90507.7, 157472.08, 170864.74, 169278.74, 134875.26, 183953.53, 0.0, 0.0], "rev": [288664.57, 142030.58, 131107.26, 167387.0, 90507.7, 157472.08, 170864.74, 169278.74, 134875.26, 183953.53, 0, 0], "gp": [49912.596900000004, 44806.19579999999, 29532.981900000013, 35754.04759999999, 22507.789600000004, 44345.65669999999, 52189.2387, 59849.92499999999, 38236.691900000005, 57716.70000000001, 0, 0], "np": [2748.1369000000013, 5095.035799999991, -8587.168099999977, -1735.8824000000113, -11656.930399999994, -2662.333300000006, 4343.828700000009, 12598.934999999994, -6005.438099999999, 9205.380000000012, 0, 0]}, "DSS": {"amc": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "prj": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1555373.0, 802261.0, 0.0, 0.0], "trd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "rev": [0, 0, 0, 0, 0, 0, 0, 0, 1555373.0, 802261.0, 0, 0], "gp": [0, -4193.73, -5155.59, -6455.99, -6315.41, -6277.94, -6514.41, -6315.41, 264413.6499999999, 120276.21999999997, 0, 0], "np": [-19615.94, -21485.96, -17152.3, -20843.11, -18436.379999999997, -9877.32, -19790.98, -18384.98, 252472.2699999999, 108199.64999999997, 0, 0]}, "ITD": {"amc": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "prj": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "trd": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "rev": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "gp": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "np": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}}, "budget": {"rev": [1383333.3333333335, 1383333.3333333335, 1383333.3333333335, 1383333.3333333335, 1383333.3333333335, 1383333.3333333335, 1550000.0, 1550000.0, 1550000.0, 1550000.0, 1550000.0, 1550000.0], "gp": [432833.33333333326, 432833.33333333326, 432833.33333333326, 432833.33333333326, 432833.33333333326, 432833.33333333326, 472833.33333333326, 472833.33333333326, 472833.33333333326, 472833.33333333326, 472833.33333333326, 472833.33333333326], "np": [64988.66345092686, 54420.893074214575, 42422.86040024196, 55239.052275127804, 80123.21025457988, 80330.14766690864, 110329.36223412864, 110388.93922043001, 107656.54672043002, 115391.99922043, 115559.37288481358, 109601.83966563549]}, "py": {"rev": [621975.91, 639719.37, 675360.1799999999, 1050868.69, 870364.6799999999, 1331280.5399999998, 1252688.7, 1438716.7899999998, 1192881.13, 1103386.52, 1036774.8500000001, 1733460.2799999998], "gp": [206545.58950000006, 235903.6483, 261585.15419999993, 396691.5937999999, 283191.61749999993, 322350.06529999967, 462556.1084, 395656.37369999976, 326023.74479999987, 382935.3151, 347085.80759999994, 531163.7080999999], "np": [-176362.1504999999, -119591.88990000001, -93549.56210000013, 66053.3137, -65873.25240000004, -24219.655100000273, 116825.25830000006, 74219.49179999981, -11885.02120000012, 32971.90270000005, 13436.31979999987, -9806.357200000115]}, "items": {"debt": [1610366.7999999998, 2547415.2, 1995242.5899999999, 2603807.9000000004, 2461778.73, 679564.3899999999, 491377.75, 2003021.5599999998, 2701695.96, 2529685.97, 0.0, 0.0], "debt_b": [[879713.17, 1878038.79, 1807240.02, 2405530.47, 960442.26, 543838.6799999999, 404667.91000000003, 1844842.7, 2408913.86, 2376010.69, 0.0, 0.0], [255383.76, 202507.11, 127718.47, 125922.0, 1428981.04, 116229.45999999999, 73416.59, 120560.15, 221483.39, 94508.87, 0.0, 0.0], [58959.44, 47780.87, 45962.3, 50922.63, 50922.63, 6995.84, 792.84, 25118.3, 58005.46, 45873.16, 0.0, 0.0], [0.0, 2778.0, 5389.41, 12500.41, 12500.41, 12500.41, 12500.41, 12500.41, 13293.25, 13293.25, 0.0, 0.0], [416310.43, 416310.43, 8932.39, 8932.39, 8932.39, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]], "inv": [2646137.6, 2619625.8979, 2526958.0527999997, 2442547.6655, 2548936.4431, 2318140.1512, 2453448.3277, 2364877.2, 2350017.7224, 3069713.0462999996, 0.0, 0.0], "inv_b": [[307328.7611, 278893.6565, 301571.1459, 231612.57460000002, 349336.3923, 220490.30719999998, 366536.8608, 244898.16429999997, 285404.9403, 979191.9251000001, 0.0, 0.0], [202122.1103, 196904.64299999998, 121519.2305, 145151.4243, 140560.4786, 122189.697, 94883.1294, 132574.2029, 103145.3008, 125962.2506, 0.0, 0.0], [196983.3771, 177414.7858, 180922.4063, 145967.35379999998, 170373.2698, 159803.6132, 201009.8961, 211183.7007, 195549.98070000001, 172072.2021, 0.0, 0.0], [193721.4977, 197100.65279999998, 188486.5392, 204995.3175, 196314.94640000002, 199051.2167, 190701.0141, 194937.21029999998, 196569.1264, 224327.22220000002, 0.0, 0.0], [1745981.8538000002, 1769312.1598, 1734458.7308999998, 1714820.9953, 1692351.356, 1616605.3171, 1600317.4272999999, 1581283.9218000001, 1569348.3742, 1568159.4463, 0.0, 0.0]], "dso": [45.41133545914892, 72.1314707490665, 57.140999627781085, 72.53291003468135, 70.67891737347513, 20.26461115369952, 15.494578586671434, 60.834823360447196, 76.30356981689175, 65.21495971550551, 0.0, null], "dsi": [230.94082310939024, 241.4250156162352, 242.34973979485315, 227.20045875374083, 235.99503435387265, 218.8980310801596, 207.98728179033375, 179.39217410811122, 172.42753024006586, 185.72186527848518, 0.0, 0.0], "oh_tr": [213573.0, 41321.0, 92105.0, 41777.0, 63999.0, 36686.0, 246586.0, 178010.0, 54017.0, 125092.0, null, null], "oh_pr": [1144828.0, 2439844.0, 7718764.0, 6857629.0, 7092330.0, 7791318.0, 7902752.0, 6550962.0, 5744918.0, 4424494.0, null, null], "quote": [14658204.0, 16256293.0, 8697671.0, 17370112.36, 9073216.0, 19545499.0, 22460762.0, 7963342.0, 9164269.0, 10449976.0, null, null], "quote_q": [197.0, 169.0, 139.0, 238.0, 143.0, 230.0, 231.0, 171.0, 192.0, 211.0, null, null], "order": [1989642.1099999999, 386647.0, 5521981.0, 435303.0, 618363.0, 1368272.0, 795481.0, 717105.0, 1110125.0, 1659624.0, null, null], "o_sop": [204049.11, 57629.0, 94511.0, 173177.0, 49020.0, 156538.0, 168774.0, 336623.0, 92318.0, 274003.0, null, null], "o_prj": [1757693.0, 251768.0, 5413989.0, 226076.0, 456843.0, 1168734.0, 395807.0, 135182.0, 910567.0, 1281456.0, null, null], "o_amc": [27900.0, 77250.0, 13481.0, 36050.0, 112500.0, 43000.0, 230900.0, 245300.0, 107240.0, 104165.0, null, null], "ag_lbl": ["0-30", "30-90", "90-180", "180-365", ">365"], "ag_tr": [31761.0, 25941.0, 44534.0, 22856.0, 0.0], "ag_pr": [601047.21, 606165.72, 97865.85, 2943926.44, 175488.78000000003], "brand_names": ["Alcatel Lucent", "Bosch", "TOA", "HIK Vision", "Others"], "brand_vals": [1369720.7412, 425595.36360000004, 993753.4079, 35185.9195, 245457.61409999966], "bagg_brands": ["Alcatel", "HIK Vision", "Bosch", "TOA"], "bagg": [[472010.1, 32426.1577, 0.0, 421770.5801], [66693.3494, 484.1436, 0.0, 48672.4571], [90190.4516, 228.1336, 98.8887, 77314.6942], [68553.9283, 350.0, 17855.6362, 90508.93620000001], [672272.9119, 1697.4846, 407640.8387, 355486.7403]]}, "adj": {"stock": -102720, "debt": -69398, "np_after": 11346.520999997912, "np_before": 183464.5209999979}, "score": [{"kpi": "Net Profit after Provision & Adjustments", "tgt": 821291.6745174185, "ytd": 11346.520999997912, "dir": "Higher", "lim": 500000, "lim_txt": "<=500K"}, {"kpi": "Average GP", "tgt": 0.39, "ytd": 0.2855400064166969, "dir": "Higher", "lim": 0.27, "lim_txt": "<=27%"}, {"kpi": "Day Sales Outstanding", "tgt": 75, "ytd": 65.21495971550551, "dir": "Lower", "lim": 100, "lim_txt": ">=100"}, {"kpi": "Day Sales Inventory", "tgt": 90, "ytd": 185.72186527848518, "dir": "Lower", "lim": 130, "lim_txt": ">=130"}, {"kpi": "Percentage of sales to Top 5 Customers", "tgt": 0.4, "ytd": 0.4539184883830377, "dir": "Lower", "lim": 0.5, "lim_txt": ">=50%"}, {"kpi": "Number of New Customers", "tgt": 80, "ytd": 87, "dir": "Higher", "lim": 75, "lim_txt": "<=75"}, {"kpi": "Custmer Satisfaction- Positive Feedbacks", "tgt": 0.95, "ytd": null, "dir": "Higher", "lim": 0.8, "lim_txt": "<=80%"}, {"kpi": "Staff Turnover Rate", "tgt": 0.1, "ytd": 0.08, "dir": "Lower", "lim": 0.2, "lim_txt": ">=20%"}, {"kpi": "Number of Brands/ Product Lines", "tgt": 10, "ytd": null, "dir": "Higher", "lim": 7, "lim_txt": "<=7"}, {"kpi": "Achievement of All KPI Targets", "tgt": 0.8, "ytd": 0.14285714285714285, "dir": "Higher", "lim": 0.7, "lim_txt": "<=70%"}], "kpi_ach": ["Net Profit after Provision & Adjustments", "Average GP", "Day Sales Outstanding", "Day Sales Inventory", "Percentage of sales to Top 5 Customers", "Number of New Customers", "Custmer Satisfaction- Positive Feedbacks", "Staff Turnover Rate", "Number of Brands/ Product Lines", "Achievement of All KPI Targets"], "kpi_e18": 0.14285714285714285, "kpi_d18": 0.8, "kpi_d10": 0.39, "kpi_d9": 821291.6745174185, "kpi_names": ["Net Profit after Provision & Adjustments", "Average GP", "Day Sales Outstanding", "Day Sales Inventory", "Percentage of sales to Top 5 Customers", "Number of New Customers", "Custmer Satisfaction- Positive Feedbacks", "Staff Turnover Rate", "Number of Brands/ Product Lines", "Achievement of All KPI Targets"]};
+document.getElementById('logo').src = "data:image/png;base64,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";
+Chart.register(ChartDataLabels);
+Chart.defaults.font.family = 'Arial, "Segoe UI", Tahoma, sans-serif';
+Chart.defaults.color = '#333';
+Chart.defaults.plugins.datalabels.display = false;
+
+// ---------- language ----------
+const AR = {
+ 'Dyarco Technology (WLL)':'دياركو تكنولوجي (ذ.م.م.)',
+ 'Finance & KPI dashboard for management':'لوحة المالية ومؤشرات الأداء للإدارة',
+ 'All money in QAR':'جميع المبالغ بالريال القطري',
+ 'Company':'الشركة','Up to month':'حتى شهر','Print or save as PDF':'طباعة أو حفظ PDF',
+ 'Overview':'نظرة عامة','Targets':'الأهداف','Gauges':'المؤشرات','Trends':'الاتجاهات','Pipeline':'المبيعات','Cash':'النقد','Business mix':'توزيع الأعمال','Notes':'ملاحظات',
+ 'How are we doing this year?':'كيف أداؤنا هذا العام؟',
+ 'Are we on target?':'هل نحقق الأهداف؟','whole group, as at October':'المجموعة ككل، حتى أكتوبر',
+ 'How close are we to target?':'ما مدى اقترابنا من الهدف؟',
+ 'How each company is doing':'أداء كل شركة','so far this year':'حتى الآن هذا العام',
+ 'Profit and revenue through the year':'الأرباح والإيرادات خلال العام',
+ 'Sales pipeline: quotes, orders and work in hand':'خط المبيعات: عروض الأسعار والطلبات والأعمال قيد التنفيذ',
+ 'Cash tied up: stock and what customers owe':'النقد المرتبط: المخزون والمستحقات على العملاء',
+ 'Where the business earns its money':'مصادر دخل الشركة',
+ 'whole group':'المجموعة ككل',
+ 'On track means the KPI meets its target. At risk means it is between target and the limit. Off track means it has reached the limit. "No data" means it has not been reported yet.':'«على المسار» يعني أن المؤشر حقق الهدف. «معرض للخطر» يعني أنه بين الهدف وحد الإنذار. «خارج المسار» يعني أنه وصل إلى حد الإنذار. «لا توجد بيانات» يعني أنه لم يُسجَّل بعد.',
+ 'Consolidated comes from the Cons. sheet. DTC, AFQ, DSS and ITD come from their own sheets. Net profit is before provisions. Budget is set for the whole group only.':'الإجمالي يأتي من ورقة Cons. وتأتي شركات DTC وAFQ وDSS وITD من أوراقها. صافي الربح قبل المخصصات. الميزانية محددة للمجموعة ككل فقط.',
+ 'Net profit: 2025 vs 2026 vs budget (QAR M)':'صافي الربح: 2025 مقابل 2026 مقابل الميزانية (مليون ريال)',
+ 'Revenue: 2025 vs 2026 vs budget (QAR M)':'الإيرادات: 2025 مقابل 2026 مقابل الميزانية (مليون ريال)',
+ 'Gross profit and net profit, 2026 (QAR M)':'مجمل الربح وصافي الربح، 2026 (مليون ريال)',
+ 'Gross profit: 2025 vs 2026 vs budget (QAR M)':'مجمل الربح: 2025 مقابل 2026 مقابل الميزانية (مليون ريال)',
+ 'Monthly revenue by business line (QAR M)':'الإيرادات الشهرية حسب خط الأعمال (مليون ريال)',
+ 'What provisions do to net profit (QAR M)':'أثر المخصصات على صافي الربح (مليون ريال)',
+ 'Quotes vs orders, by month (QAR M)':'عروض الأسعار مقابل الطلبات، شهرياً (مليون ريال)',
+ 'Quotes: value and number, 2026':'عروض الأسعار: القيمة والعدد، 2026',
+ 'Customer orders by type, 2026 (QAR M)':'طلبات العملاء حسب النوع، 2026 (مليون ريال)',
+ 'Work in hand: orders not yet delivered (QAR M)':'الأعمال قيد التنفيذ: طلبات لم تُسلَّم بعد (مليون ريال)',
+ 'Work in hand by age (QAR M)':'الأعمال قيد التنفيذ حسب العمر (مليون ريال)',
+ 'Stock on hand by age (QAR M)':'المخزون حسب العمر (مليون ريال)',
+ 'Money owed by customers, by age (QAR M)':'المستحقات على العملاء حسب العمر (مليون ريال)',
+ 'Stock value by brand (QAR M)':'قيمة المخزون حسب العلامة التجارية (مليون ريال)',
+ 'Brand stock by age (QAR M)':'مخزون العلامات التجارية حسب العمر (مليون ريال)',
+ 'Revenue, gross profit and net profit by company (QAR M)':'الإيرادات ومجمل الربح وصافي الربح حسب الشركة (مليون ريال)',
+ 'Source: Monthly_Report workbook (Cons., DTC, AFQ, DSS and ITD sheets, KPI, KPI Working, Adjustment Entries Impact). This page shows the October 2026 position. Pick a company and a month above to update the figures and trend charts.':'المصدر: ملف Monthly_Report (أوراق Cons. وDTC وAFQ وDSS وITD وKPI وKPI Working وAdjustment Entries Impact). تعرض هذه الصفحة الوضع حتى أكتوبر 2026. اختر شركة وشهراً أعلاه لتحديث الأرقام والرسوم البيانية.',
+ 'Nov and Dec are not yet reported. Provisions and the scorecard are as at October. Pipeline and cash figures are for the whole group.':'لم يُسجَّل شهرا نوفمبر وديسمبر بعد. المخصصات وبطاقة الأداء حتى أكتوبر. أرقام المبيعات والنقد للمجموعة ككل.',
+ // cards
+ 'Revenue so far':'الإيرادات حتى الآن','Budget so far:':'الميزانية حتى الآن:','Budget is set for the whole group':'الميزانية محددة للمجموعة ككل',
+ 'You have reached':'بلغت','of budget':'من الميزانية',
+ 'Gross profit so far':'مجمل الربح حتى الآن','Margin:':'الهامش:',
+ 'Net profit so far':'صافي الربح حتى الآن','After provisions:':'بعد المخصصات:','Provisions are booked for the whole group':'تُسجَّل المخصصات للمجموعة ككل',
+ 'Revenue vs last year':'الإيرادات مقابل العام الماضي','n/a':'غير متاح','Last year, same months:':'العام الماضي، نفس الأشهر:',
+ 'Last-year figures are for the whole group':'أرقام العام الماضي للمجموعة ككل','Last year margin:':'هامش العام الماضي:',
+ 'DSO: days to collect':'أيام التحصيل (DSO)','days':'يوم','Target: 75 days or fewer':'المستهدف: 75 يوماً أو أقل','Target: 90 days or fewer':'المستهدف: 90 يوماً أو أقل',
+ 'Lower is better (whole group)':'الأقل أفضل (المجموعة ككل)',
+ 'DSI: days of stock held':'أيام المخزون (DSI)',
+ 'What customers owe (whole group)':'مستحقات العملاء (المجموعة ككل)','Owed over 90 days:':'مستحق لأكثر من 90 يوماً:','Share over 90 days:':'نسبته لأكثر من 90 يوماً:',
+ 'Stock on hand (whole group)':'المخزون الحالي (المجموعة ككل)','Stock over 730 days:':'مخزون أكثر من 730 يوماً:','Share of stock in the oldest band':'نسبة المخزون في الفئة الأقدم',
+ 'Work in hand (whole group)':'الأعمال قيد التنفيذ (المجموعة ككل)','Projects:':'المشاريع:','Trading:':'التجارة:',
+ 'Provisions booked (as at October):':'المخصصات المسجلة (حتى أكتوبر):','stock':'المخزون','debtors':'المدينون','Net profit after provisions:':'صافي الربح بعد المخصصات:',
+ 'Showing the whole group, up to':'عرض المجموعة ككل، حتى','Showing':'عرض','only, up to':'فقط، حتى','Budget and last-year figures are for the whole group.':'أرقام الميزانية والعام الماضي للمجموعة ككل.',
+ 'Whole group':'المجموعة ككل','Whole group (consolidated)':'المجموعة ككل (موحدة)',
+ '2026 so far, up to':'2026 حتى','Showing: ':'عرض: ',
+ 'Pick a company and a month above':'اختر الشركة والشهر أعلاه',
+ // scorecard
+ 'KPI':'المؤشر','Target':'الهدف','So far':'حتى الآن','Better when':'الأفضل عندما','Undesirable':'غير مرغوب','Status':'الحالة',
+ 'Higher is better':'الأعلى أفضل','Lower is better':'الأقل أفضل',
+ 'On track':'على المسار','At risk':'معرض للخطر','Off track':'خارج المسار','No data':'لا توجد بيانات',
+ // gauges
+ 'Revenue vs budget':'الإيرادات مقابل الميزانية','GP margin vs 39% target':'هامش الربح الإجمالي مقابل الهدف 39%',
+ 'Net profit after provisions':'صافي الربح بعد المخصصات','KPI targets achieved':'تحقيق أهداف المؤشرات',
+ 'of budget':'من الميزانية','of target':'من الهدف','margin':'الهامش','achieved vs':'محقق مقابل','achieved':'محقق',
+ 'Gauges show the whole group':'المقاييس تعرض المجموعة ككل',
+ 'Gauges show progress against target, capped at 100%. Net profit uses the provisions as at October.':'المقاييس تعرض التقدم مقابل الهدف بحد أقصى 100%. صافي الربح يستخدم المخصصات حتى أكتوبر.',
+ 'Gauges are measured against group targets, so they are shown for the whole group only.':'تُقاس المقاييس بأهداف المجموعة، لذلك تُعرض للمجموعة ككل فقط.',
+ // snapshot
+ 'So far this year (QAR)':'حتى الآن هذا العام (ريال)','Revenue':'الإيرادات','Gross profit':'مجمل الربح','Net profit (before provisions)':'صافي الربح (قبل المخصصات)','GP margin':'هامش الربح الإجمالي',
+ // charts
+ 'NP 2026 (actual)':'صافي الربح 2026 (فعلي)','NP 2025 (actual)':'صافي الربح 2025 (فعلي)','NP budget 2026':'ميزانية صافي الربح 2026',
+ 'Revenue 2025 (actual)':'الإيرادات 2025 (فعلي)','Revenue 2026 (actual)':'الإيرادات 2026 (فعلي)','Revenue budget 2026':'ميزانية الإيرادات 2026',
+ 'Gross profit 2026':'مجمل الربح 2026','Net profit 2026':'صافي الربح 2026',
+ 'Gross profit 2026 (actual)':'مجمل الربح 2026 (فعلي)','Gross profit 2025 (actual)':'مجمل الربح 2025 (فعلي)','Gross profit budget 2026':'ميزانية مجمل الربح 2026',
+ 'AMC':'الصيانة (AMC)','Trading':'التجارة','Projects':'المشاريع',
+ 'Net profit before provisions':'صافي الربح قبل المخصصات','Stock provision':'مخصص المخزون','Debtors provision':'مخصص المدينين','Net profit after provisions':'صافي الربح بعد المخصصات',
+ 'Provisions':'المخصصات','Net profit':'صافي الربح','Base':'أساس',
+ 'Quotes (QAR M)':'عروض الأسعار (مليون ريال)','Customer orders (QAR M)':'طلبات العملاء (مليون ريال)',
+ 'Quote value (QAR M)':'قيمة عروض الأسعار (مليون ريال)','Number of quotes (right axis)':'عدد العروض (المحور الأيمن)',
+ 'SOP':'SOP','Trading':'التجارة',
+ 'Revenue by business line':'الإيرادات حسب خط الأعمال',
+ 'Projects':'المشاريع','Project':'المشروع',
+ 'Revenue, gross profit, net profit':'الإيرادات ومجمل الربح وصافي الربح',
+ 'Revenue':'الإيرادات','Gross profit':'مجمل الربح',
+ 'Where ':'مصادر الإيرادات ','comes from, so far':'حتى الآن',
+ 'the group':'المجموعة','AMC (maintenance)':'الصيانة (AMC)',
+ 'Trading':'التجارة','Projects':'المشاريع',
+ '0-90 days':'0-90 يوماً','90-180 days':'90-180 يوماً','180-365 days':'180-365 يوماً','365-730 days':'365-730 يوماً','over 730 days':'أكثر من 730 يوماً',
+ 'Money owed':'المستحقات',
+ 'Net profit (AR)':'صافي الربح',
+ 'Where the business earns its money (QAR M)':'مصادر دخل الشركة',
+};
+let lang = 'en';
+const MON_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MON_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const t = k => (lang === 'ar' && AR[k] !== undefined) ? AR[k] : k;
+const MON = () => lang === 'ar' ? MON_AR : MON_EN;
+const UNIT = () => lang === 'ar' ? 'مليون' : 'M';
+
+const COS = ['Consolidated','DTC','AFQ','DSS','ITD'];
+const COS_AR = {'Consolidated':'المجموعة ككل (موحدة)','DTC':'DTC','AFQ':'AFQ','DSS':'DSS','ITD':'ITD'};
+const COL = {navy:'#1B2A41',orange:'#F07818',teal:'#2A9D8F',gold:'#E9B44C',slate:'#9AA5B1',brick:'#C8553D',sky:'#7FB7BE',taupe:'#A8A495',soft:'#D5DCE5'};
+const BUCK = [COL.teal, COL.sky, COL.gold, COL.orange, COL.brick];
+const BLAB_EN = ['0-90 days','90-180 days','180-365 days','365-730 days','over 730 days'];
+const REPORTED = 10;
+const pct = (v,d=1) => (v==null||isNaN(v)) ? '-' : (v*100).toFixed(d)+'%';
+const fmtM = v => (v==null||isNaN(v)) ? '-' : (v<0?'-':'') + (Math.abs(v)/1e6).toFixed(2) + 'M';
+const fmtQ = v => (v==null||isNaN(v)) ? '-' : (v<0?'(':'') + Math.round(Math.abs(v)).toLocaleString('en-US') + (v<0?')':'');
+const sum = (arr, m) => { let s=0; for (let i=0;i<=m;i++) if (arr[i]!=null) s+=arr[i]; return s; };
+const upTo = (arr, m, scale=1e6) => arr.map((v,i)=> (i<=m && v!=null) ? v/scale : null);
+const fullM = (arr, scale=1e6) => arr.map(v => v==null?null:v/scale);
+
+const st = { co: 'Consolidated', m: REPORTED-1 };
+const selCo = document.getElementById('selCo'), selM = document.getElementById('selM'), selLang = document.getElementById('selLang');
+function fillSelects(){
+  const cur = st.co, curM = st.m;
+  selCo.innerHTML = ''; selM.innerHTML = '';
+  COS.forEach(c => selCo.add(new Option(c === 'Consolidated' ? t('Whole group (consolidated)') : c, c)));
+  MON().forEach((mn,i) => selM.add(new Option(i < REPORTED ? mn + ' 2026' : mn + ' 2026 (' + t('not yet reported') + ')', i)));
+  selCo.value = cur; selM.value = curM;
+}
+selCo.onchange = () => { st.co = selCo.value; renderAll(); };
+selM.onchange = () => { st.m = parseInt(selM.value,10); renderAll(); };
+selLang.onchange = () => { lang = selLang.value; applyLang(); };
+AR['not yet reported'] = 'لم يُسجَّل بعد';
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-en]').forEach(el => {
+    if (!el.dataset.orig) el.dataset.orig = el.dataset.en;
+    el.textContent = t(el.dataset.orig);
+  });
+  selLang.value = lang;
+  fillSelects();
+  renderAll();
+}
+
+function comp(){ return W.companies[st.co]; }
+function isCons(){ return st.co === 'Consolidated'; }
+
+// ---------- cards ----------
+function renderCards(){
+  const m = st.m, c = comp(), cons = isCons();
+  const rev = sum(c.rev, m), gp = sum(c.gp, m), np = sum(c.np, m);
+  const bud = sum(W.budget.rev, m), budgp = sum(W.budget.gp, m), budnp = sum(W.budget.np, m);
+  const pyRev = sum(W.py.rev, m), pyGp = sum(W.py.gp, m);
+  const I = W.items;
+  const wh = (I.oh_tr[m]||0) + (I.oh_pr[m]||0);
+  const npAfter = np + W.adj.stock + W.adj.debt;
+  const over90 = [1,2,3,4].reduce((a,k)=>a+((I.debt_b[k][m]||0)),0);
+  const dsoTxt = I.dso[m]!=null ? Math.round(I.dso[m]) : '-';
+  const dsiTxt = I.dsi[m]!=null ? Math.round(I.dsi[m]) : '-';
+  const cards = [
+    [t('Revenue so far'), 'QAR ' + fmtM(rev), cons ? t('Budget so far:') + ' QAR ' + fmtM(bud) : t('Budget is set for the whole group'), cons ? t('You have reached') + ' ' + pct(rev/bud) + ' ' + t('of budget') : ''],
+    [t('Gross profit so far'), 'QAR ' + fmtM(gp), t('Margin:') + ' ' + pct(rev? gp/rev : null), cons ? t('Budget so far:') + ' QAR ' + fmtM(budgp) : ''],
+    [t('Net profit so far'), 'QAR ' + fmtM(np), cons ? t('After provisions:') + ' QAR ' + fmtM(npAfter) : t('Provisions are booked for the whole group'), cons ? t('Budget so far:') + ' QAR ' + fmtM(budnp) : ''],
+    [t('Revenue vs last year'), cons ? (rev/pyRev-1>=0?'+':'') + pct(rev/pyRev-1) : t('n/a'), cons ? t('Last year, same months:') + ' QAR ' + fmtM(pyRev) : t('Last-year figures are for the whole group'), cons ? t('Last year margin:') + ' ' + pct(pyRev? pyGp/pyRev : null) : ''],
+    [t('DSO: days to collect'), dsoTxt + ' ' + t('days'), t('Target: 75 days or fewer'), t('Lower is better (whole group)')],
+    [t('DSI: days of stock held'), dsiTxt + ' ' + t('days'), t('Target: 90 days or fewer'), t('Lower is better (whole group)')],
+    [t('What customers owe (whole group)'), 'QAR ' + fmtM(I.debt[m]), t('Owed over 90 days:') + ' QAR ' + fmtM(over90), t('Share over 90 days:') + ' ' + pct(I.debt[m]? over90/I.debt[m] : null,0)],
+    [t('Stock on hand (whole group)'), 'QAR ' + fmtM(I.inv[m]), t('Stock over 730 days:') + ' ' + pct(I.inv[m]? I.inv_b[4][m]/I.inv[m] : null,0), t('Share of stock in the oldest band')],
+    [t('Work in hand (whole group)'), 'QAR ' + fmtM(wh), t('Projects:') + ' QAR ' + fmtM(I.oh_pr[m]||0) + ' (' + pct(wh? (I.oh_pr[m]||0)/wh : null,0) + ')', t('Trading:') + ' QAR ' + fmtM(I.oh_tr[m]||0)],
+  ];
+  document.getElementById('cards').innerHTML = cards.map(c => `<div class="card"><div class="lbl">${c[0]}</div><div class="val">${c[1]}</div><div class="s">${c[2]}<br>${c[3]}</div></div>`).join('');
+  document.getElementById('prov').textContent = cons
+    ? `${t('Provisions booked (as at October):')} ${t('stock')} QAR ${fmtQ(W.adj.stock)}, ${t('debtors')} QAR ${fmtQ(W.adj.debt)}. ${t('Net profit after provisions:')} QAR ${fmtQ(W.adj.np_after)}.`
+    : t('Provisions are booked for the whole group. Select "Whole group" to see them.');
+  document.getElementById('scopeHint').textContent = cons
+    ? t('Showing the whole group, up to') + ' ' + MON()[m] + ' 2026.'
+    : t('Showing') + ' ' + st.co + ' ' + t('only, up to') + ' ' + MON()[m] + ' 2026. ' + t('Budget and last-year figures are for the whole group.');
+  document.getElementById('subline').textContent = t('Showing: ') + (cons ? t('Whole group') : st.co) + '   |   ' + t('2026 so far, up to') + ' ' + MON()[m];
+}
+
+// ---------- scorecard ----------
+const stc = s => s==='On track'?'on':s==='At risk'?'ar':s==='Off track'?'off':'nd';
+function fmtKPI(i, v){
+  if (v==null) return '-';
+  if (i===0) return fmtQ(v);
+  if ([1,4,6,7,9].includes(i)) return pct(v,1);
+  return Math.round(v).toLocaleString('en-US');
+}
+function renderScore(){
+  const rows = W.score.map((s,i) => {
+    const y = s.ytd, tg = s.tgt, lim = s.lim;
+    let status = 'No data';
+    if (y!=null) {
+      if (s.dir==='Higher') status = y>=tg ? 'On track' : (y<=lim ? 'Off track' : 'At risk');
+      else status = y<=tg ? 'On track' : (y>=lim ? 'Off track' : 'At risk');
+    }
+    const name = lang==='ar' && AR[s.kpi] ? AR[s.kpi] : s.kpi;
+    return `<tr><td>${name}</td><td>${fmtKPI(i,tg)}</td><td><b>${fmtKPI(i,y)}</b></td><td>${s.dir==='Higher'?t('Higher is better'):t('Lower is better')}</td><td>${s.lim_txt}</td><td><span class="st ${stc(status)}">${t(status)}</span></td></tr>`;
+  }).join('');
+  document.getElementById('score').innerHTML = `<tr><th>${t('KPI')}</th><th>${t('Target')}</th><th>${t('So far')}</th><th>${t('Better when')}</th><th>${t('Undesirable')}</th><th>${t('Status')}</th></tr>` + rows;
+}
+
+// ---------- gauges ----------
+let gaugeCharts = [];
+function renderGauges(){
+  const m = st.m, c = comp(), cons = isCons();
+  const rev = sum(c.rev,m), gp = sum(c.gp,m), np = sum(c.np,m);
+  const bud = sum(W.budget.rev,m);
+  const vals = cons ? [
+    Math.min(1, rev/bud),
+    Math.min(1, Math.max(0, (rev? gp/rev : 0)/W.kpi_d10)),
+    Math.min(1, Math.max(0, (np + W.adj.stock + W.adj.debt)/W.kpi_d9)),
+    Math.min(1, W.kpi_e18/W.kpi_d18)
+  ] : [null,null,null,null];
+  const labels = [t('Revenue vs budget'), t('GP margin vs 39% target'), t('Net profit after provisions'), t('KPI targets achieved')];
+  const texts = cons ? [
+    pct(vals[0]) + ' ' + t('of budget') + '  |  QAR ' + fmtM(rev) + ' / ' + fmtM(bud),
+    pct(vals[1]) + ' ' + t('of target') + '  |  ' + t('margin') + ' ' + pct(rev? gp/rev : null),
+    pct(vals[2]) + ' ' + t('of target') + '  |  QAR ' + fmtM(np+W.adj.stock+W.adj.debt) + ' / ' + fmtM(W.kpi_d9),
+    pct(vals[3]) + ' ' + t('of target') + '  |  ' + pct(W.kpi_e18,0) + ' ' + t('achieved vs') + ' 80%'
+  ] : [t('Gauges show the whole group'),t('Gauges show the whole group'),t('Gauges show the whole group'),t('Gauges show the whole group')];
+  gaugeCharts.forEach(g => g.destroy()); gaugeCharts = [];
+  const cols = [COL.teal, COL.orange, COL.brick, COL.navy];
+  document.getElementById('gauges').innerHTML = labels.map((l,i) => `<div class="panel gauge"><div class="t">${l}</div><div class="g"><canvas id="g${i}"></canvas></div><div class="v">${texts[i]}</div></div>`).join('');
+  labels.forEach((l,i) => {
+    const v = vals[i]==null ? 0 : vals[i];
+    gaugeCharts.push(new Chart(document.getElementById('g'+i), {type:'doughnut', data:{datasets:[{data: vals[i]==null?[1]:[v,1-v,1], backgroundColor: vals[i]==null?[COL.soft]:[cols[i],'#E6EAF0','transparent'], borderWidth:0}]}, options:{responsive:true,maintainAspectRatio:false,circumference:180,rotation:270,cutout:'62%',plugins:{legend:{display:false},tooltip:{enabled:false},datalabels:{display:false}}}}));
+  });
+  document.getElementById('gaugeNote').textContent = cons ? t('Gauges show progress against target, capped at 100%. Net profit uses the provisions as at October.') : t('Gauges are measured against group targets, so they are shown for the whole group only.');
+}
+
+// ---------- company table ----------
+function renderSnap(){
+  const m = st.m;
+  const lines = [[t('Revenue'), 'rev', 'money'], [t('Gross profit'), 'gp', 'money'], [t('Net profit (before provisions)'), 'np', 'money'], [t('GP margin'), 'gpm', 'pct']];
+  let html = `<tr><th>${t('So far this year (QAR)')}</th>` + COS.map(c => `<th>${lang==='ar'?COS_AR[c]:(c==='Consolidated'?'Whole group':c)}</th>`).join('') + '</tr>';
+  lines.forEach(([label, key, kind]) => {
+    html += `<tr><td>${label}</td>`;
+    COS.forEach(c => {
+      const x = W.companies[c]; const rv = sum(x.rev,m), g = sum(x.gp,m), n = sum(x.np,m);
+      const v = key==='rev'?rv: key==='gp'?g: key==='np'?n: (rv? g/rv : null);
+      const sel = c===st.co ? 'font-weight:bold' : '';
+      html += `<td style="${sel}">${kind==='pct'?pct(v):(v==null?'-':fmtQ(v))}</td>`;
+    });
+    html += '</tr>';
+  });
+  document.getElementById('snap').innerHTML = html;
+}
+
+// ---------- charts ----------
+const charts = {};
+function mk(id, cfg){ if (charts[id]) charts[id].destroy(); charts[id] = new Chart(document.getElementById(id), cfg); }
+const base = (extra={}) => ({responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false}, plugins:{legend:{position:'bottom',labels:{boxWidth:12}}, datalabels:{display:false}, ...extra}});
+const dl = (color, anchor='end', align='top', size=9) => ({display:true, color, anchor, align, font:{size, weight:'bold'}, formatter: v => v==null?'':v.toFixed(2)+'M', clip:false});
+const seg = color => ({display:true, color, font:{size:8,weight:'bold'}, formatter: v => (v==null||v<0.1) ? '' : v.toFixed(2)+'M', clip:false});
+const yM = {ticks:{callback:v=>v.toFixed(2)+'M'}, grid:{color:'#eef0f3'}};
+const xStack = {x:{stacked:true},y:{stacked:true,...yM}};
+const rtlScale = () => lang==='ar' ? {reverse:false} : {};
+
+function renderTrends(){
+  const m = st.m, c = comp(), cons = isCons(), MN = MON();
+  const rev26 = upTo(c.rev, m), gp26 = upTo(c.gp, m), np26 = upTo(c.np, m);
+  const rev25 = cons ? fullM(W.py.rev) : [], gp25 = cons ? fullM(W.py.gp) : [];
+  const budGP = cons ? fullM(W.budget.gp) : [], budRev = cons ? fullM(W.budget.rev) : [], npBud = cons ? fullM(W.budget.np) : [];
+  mk('cNP', {type:'bar', data:{labels:MN, datasets:[
+    {label:t('NP 2026 (actual)'), data:np26, backgroundColor:COL.navy, datalabels:dl(COL.navy,'end','top',8)},
+    {label:t('NP 2025 (actual)'), data:cons? fullM(W.py.np):[], backgroundColor:COL.slate, datalabels:dl('#5B6675','end','top',7)},
+    {type:'line', label:t('NP budget 2026'), data:npBud, borderColor:COL.orange, borderDash:[6,4], pointRadius:0, borderWidth:2, datalabels:dl(COL.orange,'end','top',7)}]}, options:base()});
+  mk('cRev', {type:'bar', data:{labels:MN, datasets:[
+    {type:'line', label:t('Revenue 2025 (actual)'), data:rev25, borderColor:COL.slate, backgroundColor:'rgba(154,165,177,.25)', fill:true, pointRadius:0, datalabels:{display:false}},
+    {label:t('Revenue 2026 (actual)'), data:rev26, backgroundColor:COL.navy, datalabels:dl(COL.navy,'end','top',8)},
+    {type:'line', label:t('Revenue budget 2026'), data:budRev, borderColor:COL.orange, borderDash:[6,4], pointRadius:0, borderWidth:2, datalabels:{display:false}}]}, options:base()});
+  mk('cGPNP', {type:'bar', data:{labels:MN, datasets:[
+    {label:t('Gross profit 2026'), data:gp26, backgroundColor:COL.teal, datalabels:dl(COL.teal,'end','top',8)},
+    {type:'line', label:t('Net profit 2026'), data:np26, borderColor:COL.brick, backgroundColor:COL.brick, borderWidth:3, pointRadius:4, datalabels:dl(COL.brick,'end','top',8)}]}, options:base()});
+  mk('cGP', {type:'line', data:{labels:MN, datasets:[
+    {label:t('Gross profit 2026 (actual)'), data:gp26, borderColor:COL.teal, backgroundColor:COL.teal, borderWidth:3, pointRadius:4, datalabels:dl(COL.teal,'end','top',8)},
+    {label:t('Gross profit 2025 (actual)'), data:gp25, borderColor:COL.slate, backgroundColor:COL.slate, borderWidth:2, pointRadius:3, datalabels:{display:false}},
+    {label:t('Gross profit budget 2026'), data:budGP, borderColor:COL.gold, borderDash:[6,4], pointRadius:0, borderWidth:2, datalabels:{display:false}}]}, options:base()});
+  mk('cSeg', {type:'bar', data:{labels:MN, datasets:[
+    {label:t('AMC'), data:upTo(c.amc,m), backgroundColor:COL.navy, stack:'s', datalabels:seg('#fff')},
+    {label:t('Trading'), data:upTo(c.trd,m), backgroundColor:COL.sky, stack:'s', datalabels:seg(COL.navy)},
+    {label:t('Projects'), data:upTo(c.prj,m), backgroundColor:COL.orange, stack:'s', datalabels:seg('#fff')}]}, options:base({scales:xStack})});
+  const b = W.adj.np_before/1e6, d = -W.adj.debt/1e6, s = -W.adj.stock/1e6, a = W.adj.np_after/1e6;
+  mk('cWF', {type:'bar', data:{labels:[t('Net profit before provisions'),t('Stock provision'),t('Debtors provision'),t('Net profit after provisions')], datasets:[
+    {label:t('Base'), data:[0, (W.adj.np_before+W.adj.stock)/1e6, W.adj.np_after/1e6, 0], backgroundColor:'rgba(0,0,0,0)', borderWidth:0, datalabels:{display:false}, stack:'w'},
+    {label:t('Net profit'), data:[b,null,null,a], backgroundColor:COL.navy, stack:'w', datalabels:{display:true,color:'#fff',font:{size:10,weight:'bold'},formatter:v=>v==null?'':v.toFixed(2)+'M'}},
+    {label:t('Provisions'), data:[null,s,d,null], backgroundColor:COL.brick, stack:'w', datalabels:{display:true,color:'#fff',font:{size:10,weight:'bold'},formatter:v=>v==null?'':v.toFixed(2)+'M'}}]},
+    options:base({plugins:{legend:{display:false},datalabels:{display:false}}, scales:xStack})});
+  const names = ['DTC','AFQ','DSS'];
+  mk('cCompany', {type:'bar', data:{labels:names, datasets:[
+    {label:t('Revenue'), data:names.map(n=>sum(W.companies[n].rev,m)/1e6), backgroundColor:COL.navy, datalabels:dl(COL.navy,'end','top',8)},
+    {label:t('Gross profit'), data:names.map(n=>sum(W.companies[n].gp,m)/1e6), backgroundColor:COL.teal, datalabels:dl(COL.teal,'end','top',8)},
+    {label:t('Net profit'), data:names.map(n=>sum(W.companies[n].np,m)/1e6), backgroundColor:COL.brick, datalabels:dl(COL.brick,'end','top',8)}]}, options:base()});
+  const amc = sum(c.amc,m), trd = sum(c.trd,m), prj = sum(c.prj,m), tot = amc+trd+prj;
+  const coName = lang==='ar' ? COS_AR[st.co] : (cons ? 'the group' : st.co);
+  document.getElementById('mixTitle').textContent = lang==='ar' ? `مصادر إيرادات ${coName} حتى الآن` : `Where ${cons?'the group':st.co} revenue comes from, so far`;
+  mk('cMix', {type:'doughnut', data:{labels:[t('AMC (maintenance)'),t('Trading'),t('Projects')], datasets:[{data:[amc,trd,prj].map(v=>v/1e6), backgroundColor:[COL.navy,COL.sky,COL.orange], borderColor:'#fff', borderWidth:2, datalabels:{display:true,color:'#fff',font:{size:12,weight:'bold'},formatter:v=> tot? (v/(tot/1e6)*100).toFixed(0)+'%':''}}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'50%',plugins:{legend:{position:'right'}}}});
+}
+
+function renderStatic(){
+  const I = W.items, m = st.m, MN = MON();
+  const BL = lang==='ar' ? BLAB_AR() : BLAB_EN;
+  const q = I.quote.map(v=>v==null?null:v/1e6), o = I.order.map(v=>v==null?null:v/1e6);
+  mk('cQO', {type:'bar', data:{labels:MN, datasets:[
+    {label:t('Quotes (QAR M)'), data:q, backgroundColor:COL.sky, datalabels:dl('#3E4A59','end','end',8)},
+    {label:t('Customer orders (QAR M)'), data:o, backgroundColor:COL.orange, datalabels:dl(COL.orange,'end','end',8)}]}, options:{...base(), indexAxis:'y'}});
+  mk('cQA', {type:'bar', data:{labels:MN, datasets:[
+    {label:t('Quote value (QAR M)'), data:q, backgroundColor:COL.teal, yAxisID:'y', datalabels:dl(COL.teal,'end','top',8)},
+    {type:'line', label:t('Number of quotes (right axis)'), data:I.quote_q, borderColor:COL.orange, backgroundColor:COL.orange, borderWidth:3, pointRadius:4, yAxisID:'y1', datalabels:{display:true,color:COL.orange,anchor:'end',align:'top',font:{size:9,weight:'bold'},formatter:v=>v==null?'':Math.round(v)}}]},
+    options:base({scales:{y:{ticks:{callback:v=>v.toFixed(0)+'M'}}, y1:{position:'right',grid:{display:false}}}})});
+  mk('cCO', {type:'bar', data:{labels:MN, datasets:[
+    {label:'SOP', data:I.o_sop.map(v=>v==null?null:v/1e6), backgroundColor:COL.navy, stack:'o', datalabels:seg('#fff')},
+    {label:t('Projects'), data:I.o_prj.map(v=>v==null?null:v/1e6), backgroundColor:COL.orange, stack:'o', datalabels:seg('#fff')},
+    {label:t('AMC'), data:I.o_amc.map(v=>v==null?null:v/1e6), backgroundColor:COL.gold, stack:'o', datalabels:seg(COL.navy)}]}, options:base({scales:xStack})});
+  mk('cOH', {type:'line', data:{labels:MN, datasets:[
+    {label:t('Projects'), data:upTo(I.oh_pr,m), borderColor:COL.orange, backgroundColor:COL.orange, borderWidth:3, pointRadius:4, datalabels:dl(COL.orange,'end','top',8)},
+    {label:t('Trading'), data:upTo(I.oh_tr,m), borderColor:COL.navy, backgroundColor:COL.navy, borderWidth:2, pointRadius:3, datalabels:dl(COL.navy,'end','bottom',8)}]}, options:base()});
+  mk('cAg', {type:'bar', data:{labels:I.ag_lbl, datasets:[
+    {label:t('Trading'), data:I.ag_tr.map(v=>v/1e6), backgroundColor:COL.navy, datalabels:dl(COL.navy,'end','end',8)},
+    {label:t('Project'), data:I.ag_pr.map(v=>v/1e6), backgroundColor:COL.orange, datalabels:dl(COL.orange,'end','end',8)}]}, options:base()});
+  mk('cInv', {type:'bar', data:{labels:MN, datasets: I.inv_b.map((a,k)=>({label:BL[k], data:upTo(a,m), backgroundColor:BUCK[k], stack:'i', datalabels:seg(k===1||k===2?COL.navy:'#fff')}))}, options:base({scales:xStack})});
+  mk('cDeb', {type:'bar', data:{labels:MN, datasets: I.debt_b.map((a,k)=>({label:BL[k], data:upTo(a,m), backgroundColor:BUCK[k], stack:'d', datalabels:seg(k===1||k===2?COL.navy:'#fff')}))}, options:base({scales:xStack})});
+  mk('cBrand', {type:'doughnut', data:{labels:I.brand_names, datasets:[{data:I.brand_vals.map(v=>v/1e6), backgroundColor:[COL.navy,COL.orange,COL.teal,COL.gold,COL.slate], borderColor:'#fff', borderWidth:2, datalabels:{display:true,color:'#fff',font:{size:11,weight:'bold'},formatter:v=>v.toFixed(2)+'M'}}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'48%',plugins:{legend:{position:'right'}}}});
+  mk('cBAg', {type:'bar', data:{labels:I.bagg_brands, datasets: BL.map((b,k)=>({label:b, data:I.bagg[k].map(v=>v/1e6), backgroundColor:BUCK[k], stack:'b', datalabels:seg(k===1||k===2?COL.navy:'#fff')}))}, options:{...base(), indexAxis:'y'}});
+}
+function BLAB_AR(){ return ['0-90 يوماً','90-180 يوماً','180-365 يوماً','365-730 يوماً','أكثر من 730 يوماً']; }
+
+function renderAll(){
+  renderCards(); renderScore(); renderGauges(); renderSnap(); renderTrends(); renderStatic();
+}
+fillSelects();
+applyLang();
+</script>
+</body></html>
